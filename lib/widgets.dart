@@ -92,7 +92,7 @@ class ScanResultTile extends StatelessWidget {
       leading: Text(result.rssi.toString()),
       trailing: RaisedButton(
         child: Text('CONNECT'),
-        color: Colors.black,
+        color: Colors.green.shade900,
         textColor: Colors.white,
         onPressed: (result.advertisementData.connectable) ? onTap : null,
       ),
@@ -286,7 +286,7 @@ class AdapterStateTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.redAccent,
+      color: Colors.green.shade900,
       child: ListTile(
         title: Text(
           'Bluetooth adapter is ${state.toString().substring(15)}',

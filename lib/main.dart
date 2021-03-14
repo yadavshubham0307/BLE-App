@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_ble_node/sensor_page.dart';
 import 'package:flutter_ble_node/widgets.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 void main() {
   runApp(FlutterBlueApp());
@@ -17,7 +17,8 @@ class FlutterBlueApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      color: Colors.lightBlue,
+      debugShowCheckedModeBanner: false,
+      color: Colors.green.shade900,
       home: StreamBuilder<BluetoothState>(
           stream: FlutterBlue.instance.state,
           initialData: BluetoothState.unknown,
@@ -40,7 +41,7 @@ class BluetoothOffScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue,
+      backgroundColor: Colors.green.shade900,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -51,11 +52,11 @@ class BluetoothOffScreen extends StatelessWidget {
               color: Colors.white54,
             ),
             Text(
-              'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+              'Bluetooth Adapter is ${state.toString().substring(15)}.',
               style: Theme.of(context)
                   .primaryTextTheme
                   .subhead
-                  .copyWith(color: Colors.white),
+                  .copyWith(color: Colors.black),
             ),
           ],
         ),
@@ -69,14 +70,20 @@ class FindDevicesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('BLE Devices'),
+        title: Text('Find Devices'),
+        backgroundColor: Colors.green.shade900,
       ),
       body: RefreshIndicator(
+
+
         onRefresh: () =>
             FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
+
+        color: Colors.green.shade900,
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
+
               StreamBuilder<List<BluetoothDevice>>(
                 stream: Stream.periodic(Duration(seconds: 2))
                     .asyncMap((_) => FlutterBlue.instance.connectedDevices),
@@ -94,6 +101,7 @@ class FindDevicesScreen extends StatelessWidget {
                             BluetoothDeviceState.connected) {
                           return RaisedButton(
                             child: Text('OPEN'),
+                               color: Colors.green.shade900,
                             onPressed: () => Navigator.of(context).push(
                                 MaterialPageRoute(
                                     builder: (context) =>
@@ -118,7 +126,7 @@ class FindDevicesScreen extends StatelessWidget {
                       onTap: () => Navigator.of(context)
                           .push(MaterialPageRoute(builder: (context) {
                         r.device.connect();
-                        return DeviceScreen(device: r.device);
+                        return SensorPage(device: r.device);
                       })),
                     ),
                   )
@@ -129,6 +137,8 @@ class FindDevicesScreen extends StatelessWidget {
           ),
         ),
       ),
+
+
       floatingActionButton: StreamBuilder<bool>(
         stream: FlutterBlue.instance.isScanning,
         initialData: false,
@@ -137,13 +147,15 @@ class FindDevicesScreen extends StatelessWidget {
             return FloatingActionButton(
               child: Icon(Icons.stop),
               onPressed: () => FlutterBlue.instance.stopScan(),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.green.shade900,
             );
           } else {
             return FloatingActionButton(
-                child: Icon(Icons.search),
-                onPressed: () => FlutterBlue.instance
-                    .startScan(timeout: Duration(seconds: 4)));
+              child: Icon(Icons.search,),
+              onPressed: () => FlutterBlue.instance
+                  .startScan(timeout: Duration(seconds: 4)),
+              backgroundColor: Colors.green.shade900,
+            );
           }
         },
       ),
@@ -156,16 +168,6 @@ class DeviceScreen extends StatelessWidget {
 
   final BluetoothDevice device;
 
-  List<int> _getRandomBytes() {
-    final math = Random();
-    return [
-      math.nextInt(255),
-      math.nextInt(255),
-      math.nextInt(255),
-      math.nextInt(255)
-    ];
-  }
-
   List<Widget> _buildServiceTiles(List<BluetoothService> services) {
     return services
         .map(
@@ -176,20 +178,15 @@ class DeviceScreen extends StatelessWidget {
               (c) => CharacteristicTile(
             characteristic: c,
             onReadPressed: () => c.read(),
-            onWritePressed: () async {
-              await c.write(_getRandomBytes(), withoutResponse: true);
-              await c.read();
-            },
-            onNotificationPressed: () async {
-              await c.setNotifyValue(!c.isNotifying);
-              await c.read();
-            },
+            onWritePressed: () => c.write([13, 24]),
+            onNotificationPressed: () =>
+                c.setNotifyValue(!c.isNotifying),
             descriptorTiles: c.descriptors
                 .map(
                   (d) => DescriptorTile(
                 descriptor: d,
                 onReadPressed: () => d.read(),
-                onWritePressed: () => d.write(_getRandomBytes()),
+                onWritePressed: () => d.write([11, 12]),
               ),
             )
                 .toList(),
